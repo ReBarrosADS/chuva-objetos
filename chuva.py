@@ -5,7 +5,7 @@ import time
 pygame.init()
 
 #Cria a tela
-tamanho =(960, 540)
+tamanho = (960, 540)
 tela = pygame.display.set_mode(tamanho)
 
 ##
@@ -38,8 +38,24 @@ pedras_flutuante = pygame.transform.scale(pedras_flutuante,tamanho)
 
 
 #importar o personagem
-jogador_parado_surf = pygame.image.load("assets/jogador/parado/Hero Boy Idle1.png").convert_alpha()
-jogador_parado_rect = jogador_parado_surf.get_rect(midbottom=(100, 530))
+##Cria uma lista e for para inserir as 13 imagens automaticamente 
+jogador_index = 0
+jogador_parado_surfaces = []
+
+for imagem in range(1, 14):
+    img = pygame.image.load(f"assets/jogador/parado/Hero Boy Idle{imagem}.png").convert_alpha()
+    jogador_parado_surfaces.append(img)    
+jogador_parado_rect = jogador_parado_surfaces[jogador_index].get_rect( center = (100, 430))    
+
+
+##criar uma lista para jogando voando
+jogador_voando = 0
+jogador_voando_surfaces = []
+for voando in range(1, 9):
+    img1 = pygame.image.load(f"assets/jogador/voar/Hero boy fly{voando}.png").convert_alpha()
+    jogador_voando_surfaces.append(img1)
+jogador_voando_rect = jogador_voando_surfaces[jogador_voando].get_rect(center = (100, 430))
+
 
 
 
@@ -49,6 +65,7 @@ pygame.display.set_caption("ChuvaMortal")
 #Criar um relógio para controlar os FPS
 relogio = pygame.time.Clock()
 movimento_personagem = 0
+direcao_personagem = "direita"
 
 
 
@@ -58,13 +75,30 @@ while True:
         if evento.type == pygame.QUIT:
             pygame.quit()
             exit()
-
-        if evento.type == pygame.KEYDOWN:
+        
+        if evento.type == pygame.KEYDOWN:             
+           
             if evento.key == pygame.K_RIGHT:
                 movimento_personagem = 5
+                direcao_personagem = "direita"
+
+            if evento.key == pygame.K_LEFT:
+                movimento_personagem = -5
+                direcao_personagem = "esquerda"
             
-            if evento.type == pygame.K_LEFT:
-                movimento_personagem =- 5
+            if evento.key == pygame.K_UP:
+                jogador_voando = True
+            
+            
+
+        if evento.type == pygame.KEYUP:
+             
+            if evento.key == pygame.K_RIGHT or evento.key == pygame.K_LEFT:
+                movimento_personagem = 0   
+
+            if evento.key == pygame.K_UP:
+                jogador_voando = False         
+
 
 
     
@@ -76,10 +110,41 @@ while True:
     tela.blit(terreno_rochoso,(0,0))
     tela.blit(lua_flutuante,(0,0))
     tela.blit(pedras_flutuante,(0,0))
+
+
+   
+
+    jogador_parado_rect.x += movimento_personagem
+    ##jogador_surface = null
+    
+  
+
+    ##  define se o jogador está parado ou movimentando
+    if movimento_personagem == 0:
+        jogador_surfaces = jogador_parado_surfaces
+    else:
+        jogador_surfaces = jogador_voando_surfaces     
+   
+     ##pygame.transform.flip para girar a image do personagem
+    if direcao_personagem == "direita":
+        jogador_surfaces = [pygame.transform.flip(img, True, False) for img in jogador_surfaces]
+    
+    
+    ##cria a animação com as 13 imagen dos jogadores
+    tela.blit(jogador_surfaces[int(jogador_index)], jogador_parado_rect)
+    jogador_index += 0.11
+
+    if jogador_index > len(jogador_surfaces) - 1:
+        jogador_index = 0
+   
+    
+    
     
 
-    tela.blit(jogador_parado_surf, jogador_parado_rect)
-    jogador_parado_rect.x += movimento_personagem
+    
+
+
+    
     #atualizar a tela com o conteudo
     pygame.display.update()
     #define a quantidade de frames por segundo
