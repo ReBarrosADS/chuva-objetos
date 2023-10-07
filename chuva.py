@@ -35,6 +35,11 @@ def animacao_personagem():
     jogador_retangulo.x += movimento_personagem
     # jogador_surface = null
 
+    if jogador_retangulo.right >= 960:
+        jogador_retangulo.right = 960
+    elif jogador_retangulo.left <= 0:
+        jogador_retangulo.left = 0
+        
     if movimento_personagem == 0: # Jogador está parado
         jogador_surfaces = jogador_parado_superficies
     else: # Jogador está se movimentando
@@ -102,7 +107,39 @@ def movimento_objetos_chuva():
             tela.blit(coracao_surfaces[coracao_index], objeto['retangulo'])
         elif objeto['tipo'] == 'Moeda':
             tela.blit(moeda_surfaces[projetil_index], objeto['retangulo'])  
-              
+
+def colisoes_jogador():
+    global coracao, moeda
+    
+
+    for objeto in chuva_objetos:
+        if jogador_retangulo.colliderect(objeto['retangulo']):
+            if objeto['tipo'] == 'Moeda':
+                moeda += 1
+                print(moeda)
+            elif objeto['tipo'] == 'Coracao':
+                coracao += 1
+            elif objeto['tipo'] == 'Projetil':
+                coracao -= 1
+
+            print(moeda, coracao)            
+            chuva_objetos.remove(objeto)
+
+def mostra_texto():
+    
+    
+    texto_moedas = fonte_pixel.render(f"{moeda}" , True, '#FFFFFF')
+    texto_coracao = fonte_pixel.render(f"{coracao}", True, '#FFFFFF')
+
+    logo_moeda = pygame.transform.scale(moeda_surfaces[0], [30,30])
+    logo_coracao = pygame.transform.scale(coracao_surfaces[0], (40,40))
+
+    tela.blit(logo_moeda, (12,10))
+    tela.blit(logo_coracao, (12,50))
+   
+    tela.blit(texto_moedas, (60,0))
+    tela.blit(texto_coracao, (65,50))
+            
 # Inicializa o pygame
 pygame.init()
 
@@ -117,6 +154,9 @@ pygame.display.set_caption("ChuvaMortal")
 ## Importa os arquivos necessários
 ##
 
+#carrega fonte do jogo
+fonte_pixel = pygame.font.Font(r'assets\font\Pixeltype.ttf', 50)
+
 # Carrega o plano de fundo
 plano_fundo = pygame.image.load('assets/fundo/Night-Background8.png').convert()
 fundo_estrelas = pygame.image.load('assets/fundo/Night-Background7.png').convert_alpha()
@@ -127,6 +167,9 @@ fundo_chao = pygame.image.load('assets/fundo/Night-Background3.png').convert_alp
 fundo_rochas_voadoras = pygame.image.load('assets/fundo/Night-Background1.png').convert_alpha()
 fundo_lua = pygame.image.load('assets/fundo/Night-Background2.png').convert_alpha()
 
+
+
+
 # Transforma o tamanho da imagem de fundo
 plano_fundo = pygame.transform.scale(plano_fundo, tamanho)
 fundo_estrelas = pygame.transform.scale(fundo_estrelas, tamanho)
@@ -134,9 +177,10 @@ fundo_estrelas_2 = pygame.transform.scale(fundo_estrelas_2, tamanho)
 fundo_estrelas_3 = pygame.transform.scale(fundo_estrelas_3, tamanho)
 fundo_rochas = pygame.transform.scale(fundo_rochas, tamanho)
 fundo_chao = pygame.transform.scale(fundo_chao, tamanho)
-fundo_lua = pygame.transform.scale(fundo_lua, tamanho)
+
 fundo_rochas_voadoras = pygame.transform.scale(fundo_rochas_voadoras, tamanho)
 fundo_rochas_voadoras_rect = fundo_rochas_voadoras.get_rect(topleft = (0,0))
+fundo_lua = pygame.transform.scale(fundo_lua, tamanho)
 index_estrelas = 0
 movimento_rochas = 1
 
@@ -199,9 +243,12 @@ for imagem in range(1, 9):
 
 jogador_retangulo = jogador_parado_superficies[jogador_index].get_rect( center = (100, 430))
 
+jogo_ativo = True
+moeda = 0
+coracao = 3
 
 # Loop principal do jogo
-while True:
+while jogo_ativo:
     
 
     for evento in pygame.event.get():
@@ -211,11 +258,11 @@ while True:
 
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_RIGHT:
-                movimento_personagem = 5
+                movimento_personagem = 10
                 direcao_personagem = 1
 
             if evento.key == pygame.K_LEFT:
-                movimento_personagem = -5
+                movimento_personagem = -10
                 direcao_personagem = 0
 
         if evento.type == pygame.KEYUP:
@@ -248,6 +295,12 @@ while True:
     animacao_personagem()
 
     movimento_objetos_chuva()
+
+    mostra_texto()
+
+
+    #Colisões do jogador
+    colisoes_jogador()
 
     # Atualiza a tela com o conteudo
     pygame.display.update()
